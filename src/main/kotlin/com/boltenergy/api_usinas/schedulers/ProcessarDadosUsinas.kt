@@ -13,9 +13,10 @@ class ProcessarDadosUsinas (private val ralieUsinas: RalieUsinasService){
 
     @Scheduled(cron = "0 0 9 * * *")
     fun executar(){
+        logger.info("Iniciando processamento das usinas")
         try {
-            logger.info("Iniciando processamento das usinas")
             ralieUsinas.downloadFile()
+            ralieUsinas.processarCsv()
             logger.info("Processamento finalizado")
         } catch (ex: Exception) {
             logger.error("Erro ao processar usinas", ex)
