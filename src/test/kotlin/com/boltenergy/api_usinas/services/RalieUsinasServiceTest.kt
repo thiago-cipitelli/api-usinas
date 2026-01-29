@@ -1,8 +1,7 @@
-import com.boltenergy.api_usinas.service.RalieUsinas
+import com.boltenergy.api_usinas.services.RalieUsinas
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +13,7 @@ import java.nio.file.Path
 import kotlin.test.Test
 
 @ExtendWith(MockKExtension::class)
-class RalieUsinasTest {
+class RalieUsinasServiceTest {
 
     @MockK
     lateinit var webClient: WebClient

@@ -33,6 +33,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.mockk:mockk:1.13.10")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.apache.commons:commons-csv:1.10.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

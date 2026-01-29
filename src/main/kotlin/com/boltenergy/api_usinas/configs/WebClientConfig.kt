@@ -1,4 +1,4 @@
-package com.boltenergy.api_usinas.config
+package com.boltenergy.api_usinas.configs
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
