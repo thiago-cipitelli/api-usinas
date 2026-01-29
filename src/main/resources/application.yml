@@ -2,7 +2,7 @@ spring:
   application:
     name: api-usinas
   datasource:
-    url: jdbc:postgresql://localhost:5432/meubanco
+    url: jdbc:postgresql://localhost:5432/bolt_usinas
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
