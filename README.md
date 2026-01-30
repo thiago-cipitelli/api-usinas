@@ -5,16 +5,13 @@ Sistema robusto para processamento e visualização de dados de usinas térmicas
 ## 🚀 Tecnologias Utilizadas
 
 ### Backend
-* **Kotlin** com **Spring Boot 3**
-* **Spring Data JPA** (Hibernate)
-* **Kotlin Coroutines** (Processamento Assíncrono e Paralelo)
-* **PostgreSQL** (Banco de dados relacional)
-* **Apache Commons CSV** e **BOMInputStream** (Parsing de arquivos com encoding ISO-8859-1)
+* **Kotlin** com **Spring Boot**
+* **Spring Data JPA**
+* **Kotlin Coroutines**
+* **PostgreSQL**
 
 ### Frontend
-* **Angular 17+** (Standalone Components)
-* **RxJS** (Estratégia reativa com Pipe Async)
-* **HttpClient** (Consumo de API REST)
+* **Angular 21**
 
 ---
 
