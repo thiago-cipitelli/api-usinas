@@ -21,11 +21,8 @@ class Usina(
     @Column(name = "tipo_geracao", length = 50)
     val tipoGeracao: String? = null,
 
-    @Column(name = "potencia_outorgada", precision = 15, scale = 2)
-    val potenciaOutorgada: BigDecimal? = null,
-
-    @Column(length = 2, nullable = false)
-    val uf: String,
+    @Column(length = 2)
+    val uf: String? = null,
 
     @OneToMany(mappedBy = "usina", cascade = [CascadeType.ALL], orphanRemoval = true)
     val raliePublicacoes: List<RaliePublicacao> = emptyList()

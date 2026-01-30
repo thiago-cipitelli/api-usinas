@@ -1,5 +1,8 @@
+package com.boltenergy.api_usinas.models
+
 import com.boltenergy.api_usinas.models.Usina
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
@@ -7,7 +10,7 @@ import java.time.LocalDate
     name = "ralie_publicacoes",
     uniqueConstraints = [UniqueConstraint(columnNames = ["ceg", "data_publicacao"])]
 )
-data class RaliePublicacao(
+class RaliePublicacao(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
@@ -17,5 +20,8 @@ data class RaliePublicacao(
     val usina: Usina,
 
     @Column(name = "data_publicacao", nullable = false)
-    val dataPublicacao: LocalDate
-)
+    val dataPublicacao: LocalDate,
+
+    @Column(name = "potencia_outorgada", precision = 15, scale = 2)
+    val potenciaOutorgada: BigDecimal? = null
+    )
