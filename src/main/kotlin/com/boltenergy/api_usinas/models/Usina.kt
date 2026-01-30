@@ -25,5 +25,5 @@ class Usina(
     val uf: String? = null,
 
     @OneToMany(mappedBy = "usina", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val raliePublicacoes: List<RaliePublicacao> = emptyList()
+    val raliePublicacoes: List<RaliePublicacao> = mutableListOf()
 )

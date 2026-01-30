@@ -47,7 +47,6 @@ class RalieUsinasService(
         val path = Path.of(USINAS_CSV)
         val batchSize = 10000
 
-        // --- PASSO 1: Coleta rápida de IDs do CSV (Stream sem carregar objetos) ---
         val cegsNoArquivo = mutableSetOf<String>()
         Files.newBufferedReader(path, StandardCharsets.ISO_8859_1).use { reader ->
             val parser = CSVFormat.DEFAULT.builder()
@@ -63,15 +62,10 @@ class RalieUsinasService(
             }
         }
 
-        // --- PASSO 2: Cache focado (Busca só o que interessa) ---
-        // Select ceg From usina Where ceg In (:cegsNoArquivo)
         val cegeExistentes = usinaRepository.findAllCegByCegIn(cegsNoArquivo).toMutableSet()
 
-        // Para RaliePublicacao, como a chave é composta, podemos carregar por CEG também
-        // e filtrar na memória, ou usar uma query customizada.
         val raliesExistentes = raliePublicacaoRepository.findAllKeysByUsinaCegIn(cegsNoArquivo).toMutableSet()
 
-        // --- PASSO 3: Processamento Real ---
         val batchUsina = mutableSetOf<Usina>()
         val batchRalie = mutableSetOf<RaliePublicacao>()
 
@@ -90,7 +84,6 @@ class RalieUsinasService(
                 val dataPub = LocalDate.parse(record["DatRalie"])
                 val chaveRalie = "${codCeg}_$dataPub"
 
-                // Verifica Usina
                 if (!cegeExistentes.contains(codCeg)) {
                     val usina = Usina(
                         ceg = codCeg,
@@ -102,7 +95,6 @@ class RalieUsinasService(
                     cegeExistentes.add(codCeg)
                 }
 
-                // Verifica Ralie
                 if (!raliesExistentes.contains(chaveRalie)) {
                     val potencia = record["MdaPotenciaOutorgadaKw"]
                         .replace(".", "").replace(",", ".").toBigDecimal()

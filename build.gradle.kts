@@ -28,6 +28,7 @@ dependencies {
 	implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.apache.commons:commons-csv:1.10.0")
+    implementation("commons-io:commons-io:2.15.1")
 
     runtimeOnly("org.postgresql:postgresql")
 
