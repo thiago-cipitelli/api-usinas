@@ -29,8 +29,7 @@ Para lidar com o volume de dados massivo e os requisitos de unicidade, foram imp
 
 ## 📋 Como Executar o Projeto
 
-### Pré-requisitos
-* Java 17+
-* Node.js 18+
-* PostgreSQL rodando (porta 5432)
 
+```bash 
+docker-compose up --build
+```
