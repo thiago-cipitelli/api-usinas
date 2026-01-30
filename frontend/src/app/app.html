@@ -1,2 +1,41 @@
-<app-ranking></app-ranking>
-<router-outlet />
+<app-header></app-header>
+
+<main class="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="text-gradient">Sistema de Ranking</span><br>
+                    de Usinas Elétricas
+                </h1>
+                <p class="hero-description">
+                    Visualize e compare as usinas com maior potência instalada em tempo real
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <app-stats-card icon="⚡" value="5" label="Usinas no Ranking" color="primary">
+                </app-stats-card>
+
+                <app-stats-card icon="📊" value="100%" label="Dados em Tempo Real" color="success">
+                </app-stats-card>
+
+                <app-stats-card icon="🏆" value="Top 5" label="Melhores Classificadas" color="warning">
+                </app-stats-card>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ranking Section -->
+    <app-ranking></app-ranking>
+
+    <router-outlet />
+</main>
+
+<app-footer></app-footer>

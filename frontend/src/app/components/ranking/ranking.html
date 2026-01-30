@@ -1,30 +1,44 @@
-<div style="padding: 20px;">
-  <h2>Top 5 Usinas</h2>
-
-  <div *ngIf="ranking$ | async as lista; else carregando">
-    <table border="1" style="width: 100%; border-collapse: collapse;">
-      <thead>
-        <tr style="background: #f4f4f4;">
-          <th>CEG</th>
-          <th>Nome</th>
-          <th>Potência (kW)</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of lista">
-          <td>{{ item.ceg }}</td>
-          <td>{{ item.nome }}</td>
-          <td>{{ item.potencia | number:'1.0-0' }}</td>
-          <td>{{ item.dataRalie | date:'dd/MM/yyyy' }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <ng-template #carregando>
-    <div style="color: blue; font-weight: bold;">
-      ⏳ Buscando dados da API... por favor aguarde.
+<section class="ranking-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🏆 Top 5 Usinas por Potência</h2>
+      <p class="section-subtitle">Ranking das usinas com maior potência instalada</p>
     </div>
-  </ng-template>
-</div>
+
+    <div *ngIf="ranking$ | async as lista; else carregando" class="ranking-grid">
+      <div *ngFor="let item of lista; let i = index" class="ranking-card" [class]="getPositionClass(i)"
+        [style.animation-delay]="(i * 0.1) + 's'">
+
+        <div class="ranking-position">
+          <span class="medal" *ngIf="i < 3">{{ getMedalEmoji(i) }}</span>
+          <span class="position-number" *ngIf="i >= 3">#{{ i + 1 }}</span>
+        </div>
+
+        <div class="ranking-content">
+          <h3 class="usina-nome">{{ item.nome }}</h3>
+
+          <div class="usina-details">
+            <div class="detail-item">
+              <span class="detail-label">CEG</span>
+              <span class="detail-value">{{ item.ceg }}</span>
+            </div>
+
+            <div class="detail-item highlight">
+              <span class="detail-label">Potência</span>
+              <span class="detail-value">{{ item.potencia | number:'1.0-0' }} kW</span>
+            </div>
+
+            <div class="detail-item">
+              <span class="detail-label">Data</span>
+              <span class="detail-value">{{ item.dataRalie | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #carregando>
+      <app-loading-spinner message="Buscando dados das usinas..."></app-loading-spinner>
+    </ng-template>
+  </div>
+</section>
