@@ -1,0 +1,30 @@
+<div style="padding: 20px;">
+  <h2>Top 5 Usinas</h2>
+
+  <div *ngIf="ranking$ | async as lista; else carregando">
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background: #f4f4f4;">
+          <th>CEG</th>
+          <th>Nome</th>
+          <th>Potência (kW)</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of lista">
+          <td>{{ item.ceg }}</td>
+          <td>{{ item.nome }}</td>
+          <td>{{ item.potencia | number:'1.0-0' }}</td>
+          <td>{{ item.dataRalie | date:'dd/MM/yyyy' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #carregando>
+    <div style="color: blue; font-weight: bold;">
+      ⏳ Buscando dados da API... por favor aguarde.
+    </div>
+  </ng-template>
+</div>
