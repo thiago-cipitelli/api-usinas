@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import com.boltenergy.api_usinas.services.RalieUsinasService
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 
 @RestController
 @RequestMapping("/usinas")
+@CrossOrigin(origins = ["http://localhost:4200"])
 class UsinaController(
     private val ralieUsinas: RalieUsinasService,
     private val usinaRepository: UsinaRepository
