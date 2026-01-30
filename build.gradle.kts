@@ -39,6 +39,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.10")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 
 kotlin {
