@@ -9,15 +9,22 @@ import org.springframework.web.reactive.function.client.WebClient
 import com.boltenergy.api_usinas.repositories.UsinaRepository
 import com.boltenergy.api_usinas.schedulers.ProcessarDadosUsinas
 import jakarta.transaction.Transactional
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.input.BOMInputStream
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
+import org.springframework.transaction.annotation.Propagation
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.ConcurrentHashMap
 
 const val USINAS_CSV = "tmp/ralie-usinas.csv"
 
@@ -42,79 +49,84 @@ class RalieUsinasService(
             .block()
     }
 
-    @Transactional
-    fun processarCsv() {
+    fun processarCsv() = runBlocking {
         val path = Path.of(USINAS_CSV)
         val batchSize = 10000
 
         val cegsNoArquivo = mutableSetOf<String>()
         Files.newBufferedReader(path, StandardCharsets.ISO_8859_1).use { reader ->
-            val parser = CSVFormat.DEFAULT.builder()
+            CSVFormat.DEFAULT.builder()
                 .setDelimiter(';')
-                .setHeader()
-                .setSkipHeaderRecord(true)
-                .setIgnoreHeaderCase(true)
-                .build()
-                .parse(reader)
-
-            for (record in parser) {
-                cegsNoArquivo.add(record["CodCEG"])
-            }
+                .setHeader().setSkipHeaderRecord(true).setIgnoreHeaderCase(true).build()
+                .parse(reader).forEach { cegsNoArquivo.add(it["CodCEG"]) }
         }
 
-        val cegeExistentes = usinaRepository.findAllCegByCegIn(cegsNoArquivo).toMutableSet()
+        val cegeExistentes = ConcurrentHashMap.newKeySet<String>().apply {
+            addAll(usinaRepository.findAllCegByCegIn(cegsNoArquivo))
+        }
+        val raliesExistentes = ConcurrentHashMap.newKeySet<String>().apply {
+            addAll(raliePublicacaoRepository.findAllKeysByUsinaCegIn(cegsNoArquivo))
+        }
 
-        val raliesExistentes = raliePublicacaoRepository.findAllKeysByUsinaCegIn(cegsNoArquivo).toMutableSet()
-
-        val batchUsina = mutableSetOf<Usina>()
-        val batchRalie = mutableSetOf<RaliePublicacao>()
-
-        Files.newInputStream(path).use { inputStream ->
+        val allRecords = Files.newInputStream(path).use { inputStream ->
             val reader = BOMInputStream(inputStream).bufferedReader(StandardCharsets.ISO_8859_1)
-            val records = CSVFormat.DEFAULT.builder()
+            CSVFormat.DEFAULT.builder()
                 .setDelimiter(';')
                 .setHeader().setSkipHeaderRecord(true).setIgnoreHeaderCase(true).setTrim(true)
-                .build().parse(reader)
+                .build().parse(reader).toList()
+        }
 
-            var count = 0
+        logger.info("Iniciando processamento paralelo...")
+        val dbDispatcher = Dispatchers.IO.limitedParallelism(20)
 
-            for (record in records) {
-                logger.info(count.toString())
-                val codCeg = record["CodCEG"]
-                val dataPub = LocalDate.parse(record["DatRalie"])
-                val chaveRalie = "${codCeg}_$dataPub"
+        withContext(dbDispatcher) {
+            allRecords.chunked(batchSize).map { chunk ->
+                launch {
+                    val batchUsina = mutableSetOf<Usina>()
+                    val batchRalie = mutableSetOf<RaliePublicacao>()
 
-                if (!cegeExistentes.contains(codCeg)) {
-                    val usina = Usina(
-                        ceg = codCeg,
-                        nome = record["NomEmpreendimento"],
-                        uf = record["SigUFPrincipal"],
-                        tipoGeracao = record["DscOrigemCombustivel"],
-                        )
-                    batchUsina.add(usina)
-                    cegeExistentes.add(codCeg)
-                }
+                    chunk.forEach { record ->
+                        val codCeg = record["CodCEG"]
+                        val dataPub = LocalDate.parse(record["DatRalie"])
+                        val chaveRalie = "${codCeg}_$dataPub"
 
-                if (!raliesExistentes.contains(chaveRalie)) {
-                    val potencia = record["MdaPotenciaOutorgadaKw"]
-                        .replace(".", "").replace(",", ".").toBigDecimal()
+                        if (cegeExistentes.add(codCeg)) {
+                            batchUsina.add(Usina(
+                                ceg = codCeg,
+                                nome = record["NomEmpreendimento"],
+                                uf = record["SigUFPrincipal"],
+                                tipoGeracao = record["DscOrigemCombustivel"]
+                            ))
+                        }
 
-                    batchRalie.add(RaliePublicacao(usina = Usina(ceg = codCeg), dataPublicacao = dataPub ,potenciaOutorgada = potencia))
+                        if (raliesExistentes.add(chaveRalie)) {
+                            val potencia = record["MdaPotenciaOutorgadaKw"]
+                                .replace(".", "").replace(",", ".").toBigDecimal()
 
-                    raliesExistentes.add(chaveRalie)
-                }
-
-                if (++count % batchSize == 0) {
+                            batchRalie.add(RaliePublicacao(
+                                usina = Usina(ceg = codCeg),
+                                dataPublicacao = dataPub,
+                                potenciaOutorgada = potencia
+                            ))
+                        }
+                    }
+                    // Salva o lote deste chunk específico
                     flushData(batchUsina, batchRalie)
                 }
-            }
-            flushData(batchUsina, batchRalie)
+            }.joinAll()
+        }
+        logger.info("Processamento paralelo concluído.")
+    }
+
+    @Transactional()
+    private fun flushData(usinas: Set<Usina>, ralies: Set<RaliePublicacao>) {
+        if (usinas.isNotEmpty()) {
+            usinaRepository.saveAll(usinas)
+        }
+        if (ralies.isNotEmpty()) {
+            raliePublicacaoRepository.saveAll(ralies)
         }
     }
 
-    private fun flushData(usinas: MutableSet<Usina>, ralies: MutableSet<RaliePublicacao>) {
-        if (usinas.isNotEmpty()) usinaRepository.saveAll(usinas).also { usinaRepository.flush(); usinas.clear() }
-        if (ralies.isNotEmpty()) raliePublicacaoRepository.saveAll(ralies).also { raliePublicacaoRepository.flush(); ralies.clear() }
-    }
 
 }

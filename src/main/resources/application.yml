@@ -1,11 +1,19 @@
 spring:
   application:
     name: api-usinas
+    files:
+      ralie-usinas: tmp/ralie-usina.csv
   datasource:
     url: jdbc:postgresql://localhost:5432/bolt_usinas
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 30
+      connection-timeout: 60000
+      idle-timeout: 600000
+      pool-name: HikariPool-Usinas
 
     jpa:
       hibernate:
@@ -13,5 +21,9 @@ spring:
       show-sql: true
       properties:
         hibernate:
+          jdbc.batch_size: 50
+          order_inserts: true
+          order_updates: true
+          temp.use_jdbc_metadata_defaults: false
           format_sql: true
           dialect: org.hibernate.dialect.PostgreSQLDialect
